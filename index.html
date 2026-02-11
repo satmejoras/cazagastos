@@ -1185,7 +1185,7 @@
             
             // Registrar Service Worker para PWA
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/cazagastos/sw.js', { scope: '/cazagastos/' })
                     .then(reg => console.log('Service Worker registrado', reg))
                     .catch(err => console.log('Error al registrar Service Worker', err));
             }
