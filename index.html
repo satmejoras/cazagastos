@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Gestor personal de gastos offline">
+    <meta name="theme-color" content="#007aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mi Economía">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon e iconos -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <title>💰 Mi Economía</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f7;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            color: #1d1d1f;
+            min-height: 100vh;
+        }
+        
+        .tarjeta {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        h1 { font-size: 24px; margin-bottom: 5px; }
+        h2 { font-size: 18px; margin: 20px 0 10px; color: #1d1d1f; }
+        .subtitulo { color: #8e8e93; font-size: 14px; margin-bottom: 20px; }
+        
+        /* Secciones del dashboard */
+        .seccion-tipo {
+            margin-bottom: 25px;
+        }
+        
+        .encabezado-seccion {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .titulo-seccion {
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .estado-presupuesto {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+        
+        /* Barras de progreso */
+        .contenedor-progreso {
+            height: 8px;
+            background: #e5e5ea;
+            border-radius: 4px;
+            margin: 10px 0 15px;
+            overflow: hidden;
+        }
+        
+        .barra-progreso {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .necesidad .barra-progreso { background: #34c759; } /* Verde */
+        .personal .barra-progreso { background: #007aff; } /* Azul */
+        
+        /* Detalles por categoría */
+        .lista-categorias {
+            margin-top: 15px;
+        }
+        
+        .categoria-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .categoria-item:last-child { border-bottom: none; }
+        
+        .nombre-categoria {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .importe-categoria {
+            font-weight: 600;
+        }
+        
+        /* Resumen general */
+        .resumen-general {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 20px;
+        }
+        
+        .saldo-total {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .positivo { color: #34c759; }
+        .negativo { color: #ff3b30; }
+        
+        /* Botones */
+        .boton {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+        
+        .boton:active { opacity: 0.8; }
+        
+        .boton-secundario {
+            background: transparent;
+            color: #007aff;
+            border: 2px solid #e5e5ea;
+        }
+        
+        /* Pantallas */
+        .pantalla { display: none; }
+        .activa { display: block; animation: aparecer 0.3s ease; }
+        
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Calculadora */
+        .teclado {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tecla {
+            padding: 20px 10px;
+            background: #f2f2f7;
+            border: none;
+            border-radius: 12px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .tecla-borrar {
+            background: #ff3b30;
+            color: white;
+            font-size: 18px;
+            grid-column: span 3;
+        }
+        
+        /* Selector de categorías en captura */
+        .selector-categorias {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .categoria-btn {
+            padding: 12px 5px;
+            border: 2px solid #e5e5ea;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .categoria-btn.seleccionada {
+            border-color: #007aff;
+            background: rgba(0, 122, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Selector de fecha */
+        .selector-fecha {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e5e5ea;
+        }
+        
+        .fecha-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .fecha-display {
+            font-size: 14px;
+            color: #1d1d1f;
+        }
+        
+        .btn-cambiar-fecha {
+            background: #007aff;
+            border: none;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .input-fecha-exacta {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e5ea;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .input-fecha-exacta.visible {
+            display: block;
+        }
+        
+        /* Botón info */
+        .btn-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #8e8e93;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .btn-info:active {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Modal info */
+        .modal-fondo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-fondo.activo {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Notificaciones */
+        .notificacion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #34c759;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: deslizar 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        @keyframes deslizar {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Tabla de detalles en modal */
+        .tabla-categorias {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .tabla-categorias th {
+            text-align: left;
+            padding: 10px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e5e5ea;
+        }
+        
+        .tabla-categorias td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .tipo-necesidad { color: #34c759; font-weight: 500; }
+        .tipo-personal { color: #007aff; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="pantalla activa">
+        <div class="tarjeta">
+            <button class="btn-info" onclick="mostrarModalInfo()" title="Guía de categorías y método">
+                ⓘ
+            </button>
+            <button class="btn-info" onclick="mostrarConfig()" title="Configuración" style="right: 50px;">
+                ⚙️
+            </button>
+            <h1>💰 Mi Economía</h1>
+            <div class="subtitulo" id="saludo">Cargando...</div>
+            
+            <!-- SECCIÓN NECESIDADES (50%) -->
+            <div class="seccion-tipo necesidad">
+                <div class="encabezado-seccion">
+                    <div class="titulo-seccion">
+                        <span>🏠</span>
+                        <span>Necesidades (50%)</span>
+                    </div>
+                    <div class="estado-presupuesto" id="estadoNecesidades">
+                        --.--€ / --.--€
+                    </div>
+                </div>
+                
+                <div class="contenedor-progreso">
+                    <div class="barra-progreso" id="barraNecesidades" style="width: 0%"></div>
+                </div>
+                
+                <div class="lista-categorias" id="listaNecesidades">
+                    <!-- Se llena con JavaScript -->
+                </div>
+            </div>
+            
+            <!-- SECCIÓN GASTOS PERSONALES (30%) -->
+            <div class="seccion-tipo personal">
+                <div class="encabezado-seccion">
+                    <div class="titulo-seccion">
+                        <span>🎯</span>
+                        <span>Gastos Personales (30%)</span>
+                    </div>
+                    <div class="estado-presupuesto" id="estadoPersonales">
+                        --.--€ / --.--€
+                    </div>
+                </div>
+                
+                <div class="contenedor-progreso">
+                    <div class="barra-progreso" id="barraPersonales" style="width: 0%"></div>
+                </div>
+                
+                <div class="lista-categorias" id="listaPersonales">
+                    <!-- Se llena con JavaScript -->
+                </div>
+            </div>
+            
+            <!-- RESUMEN GENERAL -->
+            <div class="resumen-general">
+                <div style="color: #8e8e93; font-size: 14px;">Saldo disponible este mes</div>
+                <div class="saldo-total" id="saldoTotal">--.--€</div>
+                <div style="color: #8e8e93; font-size: 13px;" id="infoResumen">
+                    De --.--€ ingresados
+                </div>
+            </div>
+            
+            <button class="boton" onclick="mostrarCaptura()">➕ Nuevo gasto</button>
+            <button class="boton boton-secundario" onclick="exportarDatos()" id="btnExportar">📤 Exportar CSV</button>
+        </div>
+        
+        <!-- ÚLTIMOS GASTOS -->
+        <div class="tarjeta">
+            <h2>📝 Últimos gastos</h2>
+            <div id="listaGastos">
+                <div class="categoria-item">
+                    <span style="color: #8e8e93;">No hay gastos aún</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CONFIGURACIÓN -->
+    <div id="config" class="pantalla">
+        <div class="tarjeta">
+            <h1>⚙️ Configuración</h1>
+            <p style="margin-bottom: 20px; color: #8e8e93;">Datos básicos para empezar</p>
+            
+            <input type="text" id="nombre" placeholder="Tu nombre" style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin-bottom: 15px;">
+            
+            <input type="number" id="ingreso" placeholder="Ingreso mensual (€)" style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin-bottom: 20px;">
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #007aff;">
+                <div style="font-weight: 600; margin-bottom: 10px; color: #007aff;">
+                    📊 Se aplicará la Regla 50/30/20
+                </div>
+                <div style="font-size: 14px; color: #424245; line-height: 1.5;">
+                    <div><strong style="color: #34c759;">50% Necesidades</strong>: Vivienda, servicios, alimentación básica...</div>
+                    <div><strong style="color: #007aff;">30% Gastos personales</strong>: Ocio, comer fuera, compras...</div>
+                    <div><strong style="color: #ff9500;">20% Ahorro</strong>: Inversiones, fondo emergencia...</div>
+                </div>
+            </div>
+            
+            <button class="boton" onclick="guardarConfig()">💾 Guardar configuración</button>
+            <button class="boton boton-secundario" onclick="mostrarDashboard()">← Cancelar</button>
+            
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <button class="boton" style="background: #ff3b30;" onclick="borrarTodosLosDatos()">🗑️ Borrar todos los datos</button>
+                <p style="font-size: 12px; color: #8e8e93; text-align: center; margin-top: 10px;">
+                    Elimina todos los gastos registrados. Esta acción no se puede deshacer.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CAPTURA DE GASTOS -->
+    <div id="captura" class="pantalla">
+        <div class="tarjeta">
+            <h1>➕ Nuevo gasto</h1>
+            
+            <!-- 1. CATEGORÍA PRIMERO -->
+            <h3 style="margin: 20px 0 10px;">🏷️ Categoría</h3>
+            <div class="selector-categorias" id="selectorCategorias">
+                <!-- Categorías se cargan con JS -->
+            </div>
+            
+            <!-- 2. IMPORTE -->
+            <div class="saldo-total" id="displayImporte" style="font-size: 48px; margin-top: 20px;">0.00€</div>
+            
+            <div class="teclado">
+                <button class="tecla" onclick="agregarNumero('1')">1</button>
+                <button class="tecla" onclick="agregarNumero('2')">2</button>
+                <button class="tecla" onclick="agregarNumero('3')">3</button>
+                <button class="tecla" onclick="agregarNumero('4')">4</button>
+                <button class="tecla" onclick="agregarNumero('5')">5</button>
+                <button class="tecla" onclick="agregarNumero('6')">6</button>
+                <button class="tecla" onclick="agregarNumero('7')">7</button>
+                <button class="tecla" onclick="agregarNumero('8')">8</button>
+                <button class="tecla" onclick="agregarNumero('9')">9</button>
+                <button class="tecla" onclick="agregarNumero('.')">.</button>
+                <button class="tecla" onclick="agregarNumero('0')">0</button>
+                <button class="tecla tecla-borrar" onclick="borrarNumero()">⌫ Borrar</button>
+            </div>
+            
+            <!-- 3. DESCRIPCIÓN -->
+            <input type="text" id="descripcion" placeholder="Descripción (opcional): Ej. Mercadona, Gasolina BP..." style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin: 15px 0;">
+            
+            <!-- 4. FECHA AL FINAL -->
+            <div class="selector-fecha">
+                <div class="fecha-header">
+                    <div class="fecha-display">
+                        📅 Fecha: <strong id="fechaDisplay">Hoy</strong>
+                    </div>
+                    <button type="button" class="btn-cambiar-fecha" onclick="mostrarCalendario()">
+                        📅 Cambiar
+                    </button>
+                </div>
+                
+                <div id="calendarioContainer" style="display: none; margin-top: 10px;">
+                    <input type="date" id="fechaExacta" class="input-fecha-exacta" 
+                           onchange="seleccionarFechaExacta(this.value)">
+                </div>
+            </div>
+            
+            <button class="boton" onclick="guardarGasto()">💾 Guardar gasto</button>
+            <button class="boton boton-secundario" onclick="mostrarDashboard()">← Cancelar</button>
+        </div>
+    </div>
+    
+    <!-- MODAL INFO (Guía completa) -->
+    <div id="modalInfo" class="modal-fondo" onclick="ocultarModalInfo()">
+        <div class="tarjeta" style="max-width: 400px; max-height: 80vh; overflow-y: auto;" onclick="event.stopPropagation()">
+            <h1>📊 Guía completa</h1>
+            
+            <!-- Regla 50/30/20 -->
+            <div style="margin: 25px 0;">
+                <h3>🎯 Regla 50/30/20</h3>
+                <div style="background: #34c759; color: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="font-size: 20px; font-weight: 700;">50% Necesidades</div>
+                    <div style="font-size: 14px; margin-top: 8px;">
+                        Gastos esenciales para vivir. Suelen ser fijos o poco variables.
+                    </div>
+                </div>
+                
+                <div style="background: #007aff; color: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="font-size: 20px; font-weight: 700;">30% Gastos personales</div>
+                    <div style="font-size: 14px; margin-top: 8px;">
+                        Gastos discrecionales que mejoran tu calidad de vida.
+                    </div>
+                </div>
+                
+                <div style="background: #ff9500; color: white; padding: 15px; border-radius: 10px;">
+                    <div style="font-size: 20px; font-weight: 700;">20% Ahorro e inversión</div>
+                    <div style="font-size: 14px; margin-top: 8px;">
+                        Para tu futuro financiero y fondo de emergencia.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabla de categorías -->
+            <h3>📋 Categorías detalladas</h3>
+            <table class="tabla-categorias">
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Tipo</th>
+                        <th>Ejemplos incluidos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🏠 Vivienda</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Alquiler, hipoteca, comunidad, IBI</td>
+                    </tr>
+                    <tr>
+                        <td>💡 Servicios</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Luz, agua, gas, calefacción, basura</td>
+                    </tr>
+                    <tr>
+                        <td>🛒 Alimentación</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Supermercado, farmacia básica</td>
+                    </tr>
+                    <tr>
+                        <td>🚗 Transporte</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Gasolina, parking, transporte público, ITV</td>
+                    </tr>
+                    <tr>
+                        <td>🏥 Salud</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Médico, dentista, veterinario, medicinas</td>
+                    </tr>
+                    <tr>
+                        <td>🛡️ Seguros</td>
+                        <td class="tipo-necesidad">Necesidad</td>
+                        <td>Coche, hogar, salud, vida</td>
+                    </tr>
+                    <tr>
+                        <td>🍽️ Comer fuera</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Restaurantes, bares, delivery, cafés</td>
+                    </tr>
+                    <tr>
+                        <td>🎉 Ocio</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Cine, streaming, vacaciones, gym, hobbies</td>
+                    </tr>
+                    <tr>
+                        <td>🛍️ Compras</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Ropa, tecnología, decoración, caprichos</td>
+                    </tr>
+                    <tr>
+                        <td>📚 Formación</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Cursos, libros, conferencias, desarrollo</td>
+                    </tr>
+                    <tr>
+                        <td>🎁 Regalos</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Cumpleaños, aniversarios, donaciones</td>
+                    </tr>
+                    <tr>
+                        <td>🔧 Mantenimiento</td>
+                        <td class="tipo-personal">Personal</td>
+                        <td>Reparaciones, talleres, reformas hogar</td>
+                </tbody>
+            </table>
+            
+            <!-- Cómo decidir -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <h4>💡 ¿Dónde registro mi gasto?</h4>
+                <p style="font-size: 14px; color: #424245; margin-top: 5px;">
+                    <strong>Pregunta:</strong> ¿Es esencial para vivir o mantener mi hogar/salud?<br>
+                    <strong>Si SÍ →</strong> Necesidad (50%)<br>
+                    <strong>Si NO →</strong> Personal (30%)<br><br>
+                    Ej: Gasolina para ir a trabajar → 🚗 Transporte (Necesidad)<br>
+                    Ej: Gasolina para viaje vacaciones → 🎉 Ocio (Personal)
+                </p>
+            </div>
+            
+            <button class="boton" onclick="ocultarModalInfo()">
+                ✅ Entendido, ¡a registrar!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ========== DATOS Y CONFIGURACIÓN ==========
+        let datos = {
+            configurado: false,
+            usuario: { nombre: '', ingreso: 0 },
+            gastos: []
+        };
+        
+        // CATEGORÍAS ESTÁNDAR (12)
+        const categorias = [
+            // 🏠 NECESIDADES (50%)
+            { id: 'vivienda', nombre: '🏠 Vivienda', tipo: 'necesidad' },
+            { id: 'servicios', nombre: '💡 Servicios', tipo: 'necesidad' },
+            { id: 'alimentacion', nombre: '🛒 Alimentación', tipo: 'necesidad' },
+            { id: 'transporte', nombre: '🚗 Transporte', tipo: 'necesidad' },
+            { id: 'salud', nombre: '🏥 Salud', tipo: 'necesidad' },
+            { id: 'seguros', nombre: '🛡️ Seguros', tipo: 'necesidad' },
+            
+            // 🎯 PERSONALES (30%)
+            { id: 'comer_fuera', nombre: '🍽️ Comer fuera', tipo: 'personal' },
+            { id: 'ocio', nombre: '🎉 Ocio', tipo: 'personal' },
+            { id: 'compras', nombre: '🛍️ Compras', tipo: 'personal' },
+            { id: 'formacion', nombre: '📚 Formación', tipo: 'personal' },
+            { id: 'regalos', nombre: '🎁 Regalos', tipo: 'personal' },
+            { id: 'mantenimiento', nombre: '🔧 Mantenimiento', tipo: 'personal' }
+        ];
+        
+        // ========== GESTIÓN DE FECHA ==========
+        let fechaSeleccionada = null; // null = hoy
+        
+        function formatearFecha(date) {
+            const hoy = new Date();
+            const ayer = new Date(hoy);
+            ayer.setDate(ayer.getDate() - 1);
+            const anteayer = new Date(hoy);
+            anteayer.setDate(anteayer.getDate() - 2);
+            
+            // Comparar fechas
+            if (date.toDateString() === hoy.toDateString()) {
+                return "Hoy";
+            } else if (date.toDateString() === ayer.toDateString()) {
+                return "Ayer";
+            } else if (date.toDateString() === anteayer.toDateString()) {
+                return "Anteayer";
+            } else {
+                return date.toLocaleDateString('es-ES', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short'
+                });
+            }
+        }
+        
+        function mostrarCalendario() {
+            const container = document.getElementById('calendarioContainer');
+            const isVisible = container.style.display !== 'none';
+            
+            if (isVisible) {
+                container.style.display = 'none';
+            } else {
+                container.style.display = 'block';
+                // Configurar el input
+                const hoy = new Date();
+                const inputFecha = document.getElementById('fechaExacta');
+                inputFecha.min = '2020-01-01';
+                inputFecha.max = hoy.toISOString().split('T')[0];
+                
+                if (fechaSeleccionada) {
+                    inputFecha.value = fechaSeleccionada.toISOString().split('T')[0];
+                } else {
+                    inputFecha.value = hoy.toISOString().split('T')[0];
+                }
+            }
+        }
+        
+
+        function seleccionarFechaExacta(valor) {
+            if (valor) {
+                fechaSeleccionada = new Date(valor + 'T12:00:00'); // Evitar problemas de zona horaria
+                actualizarDisplayFecha();
+                document.getElementById('calendarioContainer').style.display = 'none';
+            }
+        }
+        
+        function actualizarDisplayFecha() {
+            const display = document.getElementById('fechaDisplay');
+            if (fechaSeleccionada === null) {
+                display.textContent = "Hoy";
+            } else {
+                display.textContent = formatearFecha(fechaSeleccionada);
+            }
+        }
+        
+        function obtenerFechaParaGuardar() {
+            if (fechaSeleccionada === null) {
+                return new Date(); // Hoy
+            } else {
+                // Mantener la hora actual pero con la fecha seleccionada
+                const ahora = new Date();
+                const fecha = new Date(fechaSeleccionada);
+                fecha.setHours(ahora.getHours(), ahora.getMinutes(), ahora.getSeconds());
+                return fecha;
+            }
+        }
+        
+        // ========== FUNCIONES GENERALES ==========
+        function cargarDatos() {
+            const guardados = localStorage.getItem('finanzas_50_30_20');
+            if (guardados) {
+                datos = JSON.parse(guardados);
+            }
+        }
+        
+        function guardarDatos() {
+            localStorage.setItem('finanzas_50_30_20', JSON.stringify(datos));
+        }
+        
+        function mostrarNotificacion(mensaje) {
+            const notificacion = document.createElement('div');
+            notificacion.className = 'notificacion';
+            notificacion.textContent = mensaje;
+            document.body.appendChild(notificacion);
+            
+            setTimeout(() => {
+                notificacion.style.animation = 'deslizar 0.3s ease reverse';
+                setTimeout(() => notificacion.remove(), 300);
+            }, 2000);
+        }
+        
+        // ========== INTERFAZ Y NAVEGACIÓN ==========
+        function mostrarPantalla(id) {
+            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+            document.getElementById(id).classList.add('activa');
+            
+            if (id === 'dashboard') {
+                actualizarDashboard();
+            } else if (id === 'captura') {
+                inicializarCaptura();
+            } else if (id === 'config') {
+                document.getElementById('nombre').value = datos.usuario.nombre || '';
+                document.getElementById('ingreso').value = datos.usuario.ingreso || '';
+            }
+        }
+        
+        function mostrarDashboard() { mostrarPantalla('dashboard'); }
+        function mostrarConfig() { mostrarPantalla('config'); }
+        function mostrarCaptura() { mostrarPantalla('captura'); }
+        function mostrarModalInfo() { document.getElementById('modalInfo').classList.add('activo'); }
+        function ocultarModalInfo() { document.getElementById('modalInfo').classList.remove('activo'); }
+        
+        // ========== CONFIGURACIÓN ==========
+        function guardarConfig() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const ingreso = parseFloat(document.getElementById('ingreso').value);
+            
+            if (!nombre || !ingreso || ingreso < 100) {
+                mostrarNotificacion('Completa los campos correctamente');
+                return;
+            }
+            
+            datos.configurado = true;
+            datos.usuario = { nombre, ingreso };
+            guardarDatos();
+            
+            mostrarNotificacion(`✅ Configurado para ${nombre}`);
+            mostrarDashboard();
+        }
+        
+        function borrarTodosLosDatos() {
+            const totalGastos = datos.gastos ? datos.gastos.length : 0;
+            
+            if (totalGastos === 0) {
+                mostrarNotificacion('No hay datos para borrar');
+                return;
+            }
+            
+            const confirmar = confirm(
+                `⚠️ ¿Estás seguro?\n\nEsto borrará ${totalGastos} gasto${totalGastos > 1 ? 's' : ''} registrado${totalGastos > 1 ? 's' : ''}.\n\nEsta acción no se puede deshacer.`
+            );
+            
+            if (confirmar) {
+                datos.gastos = [];
+                guardarDatos();
+                mostrarNotificacion('🗑️ Todos los datos han sido borrados');
+                setTimeout(() => {
+                    mostrarDashboard();
+                }, 1000);
+            }
+        }
+        
+        // ========== DASHBOARD (CÁLCULOS COMPLETOS) ==========
+        function actualizarDashboard() {
+            if (!datos.configurado) {
+                mostrarConfig();
+                return;
+            }
+            
+            // Saludo
+            document.getElementById('saludo').textContent = `Hola ${datos.usuario.nombre}`;
+            
+            // Presupuestos mensuales
+            const presupuestoNecesidades = datos.usuario.ingreso * 0.50;
+            const presupuestoPersonales = datos.usuario.ingreso * 0.30;
+            const presupuestoTotalGastos = presupuestoNecesidades + presupuestoPersonales;
+            
+            // Fecha actual para cálculos mensuales
+            const hoy = new Date();
+            const año = hoy.getFullYear();
+            const mes = hoy.getMonth();
+            const diaMes = hoy.getDate();
+            const diasTotales = new Date(año, mes + 1, 0).getDate();
+            
+            // Calcular gastos del mes actual por tipo
+            const inicioMes = new Date(año, mes, 1);
+            const finMes = new Date(año, mes + 1, 0);
+            const gastosEsteMes = datos.gastos.filter(g => {
+                if (!g.fecha) return false;
+                const fechaGasto = new Date(g.fecha);
+                return fechaGasto >= inicioMes && fechaGasto <= finMes;
+            });
+            
+            // Agrupar por categoría y tipo
+            const gastosPorCategoria = {};
+            let totalNecesidades = 0;
+            let totalPersonales = 0;
+            
+            gastosEsteMes.forEach(gasto => {
+                const categoria = categorias.find(c => c.id === gasto.categoria);
+                if (!categoria) return;
+                
+                if (!gastosPorCategoria[categoria.id]) {
+                    gastosPorCategoria[categoria.id] = 0;
+                }
+                gastosPorCategoria[categoria.id] += gasto.importe;
+                
+                if (categoria.tipo === 'necesidad') {
+                    totalNecesidades += gasto.importe;
+                } else if (categoria.tipo === 'personal') {
+                    totalPersonales += gasto.importe;
+                }
+            });
+            
+            const totalGastado = totalNecesidades + totalPersonales;
+            const saldoDisponible = presupuestoTotalGastos - totalGastado;
+            
+            // ===== ACTUALIZAR INTERFAZ =====
+            
+            // 1. NECESIDADES (50%)
+            const porcentajeNecesidades = Math.min((totalNecesidades / presupuestoNecesidades) * 100, 100);
+            document.getElementById('barraNecesidades').style.width = `${porcentajeNecesidades}%`;
+            document.getElementById('estadoNecesidades').textContent = 
+                `${totalNecesidades.toFixed(2)}€ / ${presupuestoNecesidades.toFixed(2)}€`;
+            
+            // Lista de categorías de necesidades
+            let htmlNecesidades = '';
+            categorias
+                .filter(c => c.tipo === 'necesidad')
+                .forEach(cat => {
+                    const gasto = gastosPorCategoria[cat.id] || 0;
+                    if (gasto > 0) {
+                        htmlNecesidades += `
+                            <div class="categoria-item">
+                                <div class="nombre-categoria">
+                                    <span>${cat.nombre.split(' ')[0]}</span>
+                                    <span>${cat.nombre.split(' ').slice(1).join(' ')}</span>
+                                </div>
+                                <div class="importe-categoria">${gasto.toFixed(2)}€</div>
+                            </div>
+                        `;
+                    }
+                });
+            
+            if (htmlNecesidades === '') {
+                htmlNecesidades = '<div class="categoria-item"><span style="color: #8e8e93;">Sin gastos aún</span></div>';
+            }
+            document.getElementById('listaNecesidades').innerHTML = htmlNecesidades;
+            
+            // 2. GASTOS PERSONALES (30%)
+            const porcentajePersonales = Math.min((totalPersonales / presupuestoPersonales) * 100, 100);
+            document.getElementById('barraPersonales').style.width = `${porcentajePersonales}%`;
+            document.getElementById('estadoPersonales').textContent = 
+                `${totalPersonales.toFixed(2)}€ / ${presupuestoPersonales.toFixed(2)}€`;
+            
+            // Lista de categorías personales
+            let htmlPersonales = '';
+            categorias
+                .filter(c => c.tipo === 'personal')
+                .forEach(cat => {
+                    const gasto = gastosPorCategoria[cat.id] || 0;
+                    if (gasto > 0) {
+                        htmlPersonales += `
+                            <div class="categoria-item">
+                                <div class="nombre-categoria">
+                                    <span>${cat.nombre.split(' ')[0]}</span>
+                                    <span>${cat.nombre.split(' ').slice(1).join(' ')}</span>
+                                </div>
+                                <div class="importe-categoria">${gasto.toFixed(2)}€</div>
+                            </div>
+                        `;
+                    }
+                });
+            
+            if (htmlPersonales === '') {
+                htmlPersonales = '<div class="categoria-item"><span style="color: #8e8e93;">Sin gastos aún</span></div>';
+            }
+            document.getElementById('listaPersonales').innerHTML = htmlPersonales;
+            
+            // 3. RESUMEN GENERAL
+            document.getElementById('saldoTotal').textContent = `${saldoDisponible.toFixed(2)}€`;
+            document.getElementById('saldoTotal').className = saldoDisponible >= 0 ? 'saldo-total positivo' : 'saldo-total negativo';
+            
+            document.getElementById('infoResumen').innerHTML = `
+                De ${datos.usuario.ingreso.toFixed(2)}€ ingresados • 
+                Día ${diaMes}/${diasTotales} • 
+                <strong>${totalGastado.toFixed(2)}€</strong> gastados
+            `;
+            
+            // 4. ÚLTIMOS GASTOS (independiente del tipo)
+            actualizarUltimosGastos();
+            
+            // 5. ACTUALIZAR BOTÓN EXPORTAR con número de gastos
+            const totalGastos = datos.gastos ? datos.gastos.length : 0;
+            const btnExportar = document.getElementById('btnExportar');
+            if (totalGastos > 0) {
+                btnExportar.textContent = `📤 Exportar CSV (${totalGastos} gasto${totalGastos > 1 ? 's' : ''})`;
+            } else {
+                btnExportar.textContent = '📤 Exportar CSV';
+            }
+        }
+        
+        function actualizarUltimosGastos() {
+            const container = document.getElementById('listaGastos');
+            
+            if (!datos.gastos || datos.gastos.length === 0) {
+                container.innerHTML = `
+                    <div class="categoria-item">
+                        <span style="color: #8e8e93;">No hay gastos registrados aún</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            const ultimos = [...datos.gastos]
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                .slice(0, 5);
+            
+            let html = '';
+            ultimos.forEach(gasto => {
+                const fecha = new Date(gasto.fecha);
+                const categoria = categorias.find(c => c.id === gasto.categoria) || categorias[0];
+                
+                html += `
+                    <div class="categoria-item">
+                        <div class="nombre-categoria">
+                            <span>${categoria.nombre.split(' ')[0]}</span>
+                            <span>${gasto.descripcion || categoria.nombre.split(' ').slice(1).join(' ')}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="importe-categoria">${gasto.importe.toFixed(2)}€</div>
+                            <div style="font-size: 11px; color: #8e8e93;">
+                                ${fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // ========== CAPTURA DE GASTOS ==========
+        let importeActual = '0';
+        let categoriaSeleccionada = 'alimentacion';
+        
+        function obtenerCategoria(id) {
+            return categorias.find(c => c.id === id) || categorias[0];
+        }
+        
+        function inicializarCaptura() {
+            importeActual = '0';
+            categoriaSeleccionada = 'alimentacion';
+            fechaSeleccionada = null; // Reset a "Hoy"
+            actualizarDisplayFecha();
+            actualizarDisplayImporte();
+            cargarSelectorCategorias();
+            document.getElementById('descripcion').value = '';
+            
+            // Ocultar calendario
+            document.getElementById('calendarioContainer').style.display = 'none';
+            
+            // Configurar input date con fechas razonables
+            const hoy = new Date();
+            const inputFecha = document.getElementById('fechaExacta');
+            inputFecha.min = '2020-01-01';
+            inputFecha.max = hoy.toISOString().split('T')[0];
+            inputFecha.value = hoy.toISOString().split('T')[0];
+        }
+        
+        function cargarSelectorCategorias() {
+            const container = document.getElementById('selectorCategorias');
+            let html = '';
+            
+            categorias.forEach(cat => {
+                const seleccionada = cat.id === categoriaSeleccionada ? 'seleccionada' : '';
+                html += `
+                    <div class="categoria-btn ${seleccionada}" onclick="seleccionarCategoria('${cat.id}')">
+                        ${cat.nombre}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function seleccionarCategoria(id) {
+            categoriaSeleccionada = id;
+            cargarSelectorCategorias();
+        }
+        
+        function agregarNumero(num) {
+            if (importeActual === '0' && num !== '.') {
+                importeActual = num;
+            } else if (importeActual.includes('.') && num === '.') {
+                return;
+            } else if (importeActual.length < 10) {
+                importeActual += num;
+            }
+            actualizarDisplayImporte();
+        }
+        
+        function borrarNumero() {
+            if (importeActual.length > 1) {
+                importeActual = importeActual.slice(0, -1);
+            } else {
+                importeActual = '0';
+            }
+            actualizarDisplayImporte();
+        }
+        
+        function actualizarDisplayImporte() {
+            let display = parseFloat(importeActual).toFixed(2);
+            if (importeActual.endsWith('.') || importeActual === '0.') {
+                display = importeActual + '00';
+            } else if (importeActual.includes('.') && importeActual.split('.')[1].length === 1) {
+                display = importeActual + '0';
+            }
+            document.getElementById('displayImporte').textContent = display.replace('.', ',') + '€';
+        }
+        
+        function guardarGasto() {
+            const importe = parseFloat(importeActual);
+            
+            if (!importe || importe <= 0) {
+                mostrarNotificacion('Introduce un importe válido');
+                return;
+            }
+            
+            const fechaGasto = obtenerFechaParaGuardar();
+            
+            const nuevoGasto = {
+                id: Date.now(),
+                fecha: fechaGasto.toISOString(),
+                importe: importe,
+                categoria: categoriaSeleccionada,
+                descripcion: document.getElementById('descripcion').value.trim() || ''
+            };
+            
+            datos.gastos.push(nuevoGasto);
+            
+            // LÍMITE: 1000 gastos máximos
+            const MAX_GASTOS = 1000;
+            if (datos.gastos.length > MAX_GASTOS) {
+                datos.gastos = datos.gastos.slice(-MAX_GASTOS);
+            }
+            
+            guardarDatos();
+            
+            // Notificación y volver automáticamente
+            const categoria = obtenerCategoria(categoriaSeleccionada);
+            mostrarNotificacion(`✅ ${importe.toFixed(2)}€ en ${categoria.nombre}`);
+            
+            setTimeout(() => {
+                mostrarDashboard();
+            }, 800);
+        }
+        
+        // ========== EXPORTACIÓN ==========
+        function exportarDatos() {
+            if (!datos.gastos || datos.gastos.length === 0) {
+                mostrarNotificacion('No hay datos para exportar');
+                return;
+            }
+            
+            // Nombre de archivo personalizado
+            const nombreUsuario = datos.usuario.nombre 
+                ? datos.usuario.nombre.replace(/\s+/g, '_')
+                : 'gastos';
+            
+            const hoy = new Date();
+            const nombreArchivo = `${nombreUsuario}_${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}.csv`;
+            
+            // Crear CSV con punto y coma (separador para Excel en español)
+            let csv = 'Fecha;Hora;Importe;Categoría;Tipo;Descripción\n';
+            datos.gastos.forEach(gasto => {
+                const fecha = new Date(gasto.fecha);
+                const categoria = obtenerCategoria(gasto.categoria);
+                
+                csv += `${fecha.toLocaleDateString('es-ES')};${fecha.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})};${gasto.importe};${categoria.nombre};${categoria.tipo};${gasto.descripcion}\n`;
+            });
+            
+            // Descargar con BOM para UTF-8
+            const BOM = '\uFEFF'; // Byte Order Mark para UTF-8
+            const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nombreArchivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarNotificacion(`📤 Exportados ${datos.gastos.length} gastos`);
+        }
+        
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDatos();
+            
+            if (!datos.configurado) {
+                mostrarConfig();
+            } else {
+                mostrarDashboard();
+            }
+            
+            // Evento para ocultar calendario si se hace clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.selector-fecha')) {
+                    document.getElementById('calendarioContainer').style.display = 'none';
+                }
+            });
+            
+            // Teclado físico
+            document.addEventListener('keydown', function(e) {
+                if (e.key >= '0' && e.key <= '9') agregarNumero(e.key);
+                else if (e.key === '.') agregarNumero('.');
+                else if (e.key === 'Backspace') borrarNumero();
+                else if (e.key === 'Enter' && document.getElementById('captura').classList.contains('activa')) {
+                    guardarGasto();
+                }
+            });
+            
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registrado', reg))
+                    .catch(err => console.log('Error al registrar Service Worker', err));
+            }
+        });
+    </script>
+</body>
+</html>
