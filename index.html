@@ -501,8 +501,10 @@
                 </div>
                 
                 <div id="calendarioContainer" style="display: none; margin-top: 10px;">
-                    <input type="date" id="fechaExacta" class="input-fecha-exacta" 
-                           onchange="seleccionarFechaExacta(this.value)">
+                    <input type="date" id="fechaExacta" class="input-fecha-exacta">
+                    <button type="button" class="boton" style="margin-top: 10px; padding: 12px; font-size: 15px;" onclick="confirmarFecha()">
+                        ✓ Confirmar fecha
+                    </button>
                 </div>
             </div>
             
@@ -699,18 +701,32 @@
                 inputFecha.min = '2020-01-01';
                 inputFecha.max = hoy.toISOString().split('T')[0];
                 
+                // Pre-seleccionar la fecha actual o la ya seleccionada
                 if (fechaSeleccionada) {
                     inputFecha.value = fechaSeleccionada.toISOString().split('T')[0];
                 } else {
                     inputFecha.value = hoy.toISOString().split('T')[0];
                 }
+                
+                // Focus en el input para abrir el picker nativo en móvil
+                setTimeout(() => {
+                    inputFecha.focus();
+                }, 100);
             }
         }
         
 
-        function seleccionarFechaExacta(valor) {
+        function confirmarFecha() {
+            const inputFecha = document.getElementById('fechaExacta');
+            const valor = inputFecha.value;
+            
             if (valor) {
                 fechaSeleccionada = new Date(valor + 'T12:00:00'); // Evitar problemas de zona horaria
+                actualizarDisplayFecha();
+                document.getElementById('calendarioContainer').style.display = 'none';
+            } else {
+                // Si no seleccionó nada, mantener como "Hoy"
+                fechaSeleccionada = null;
                 actualizarDisplayFecha();
                 document.getElementById('calendarioContainer').style.display = 'none';
             }
