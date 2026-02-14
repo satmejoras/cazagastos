@@ -179,6 +179,16 @@
             border-radius: 12px;
             font-size: 24px;
             cursor: pointer;
+            /* Prevenir doble-tap y eventos duplicados en móvil */
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .tecla:active {
+            opacity: 0.7;
+            transform: scale(0.95);
         }
         
         .tecla-borrar {
@@ -1068,17 +1078,40 @@
         }
         
         function agregarNumero(num) {
+            // Evitar entrada duplicada por eventos múltiples
+            if (window.ultimaTecla === num && Date.now() - window.ultimaTeclaTime < 200) {
+                return;
+            }
+            window.ultimaTecla = num;
+            window.ultimaTeclaTime = Date.now();
+            
+            // Si es 0 inicial y no es punto, reemplazar
             if (importeActual === '0' && num !== '.') {
                 importeActual = num;
-            } else if (importeActual.includes('.') && num === '.') {
+            } 
+            // No permitir más de un punto decimal
+            else if (num === '.' && importeActual.includes('.')) {
                 return;
-            } else if (importeActual.length < 10) {
+            }
+            // No permitir más de 2 decimales
+            else if (importeActual.includes('.') && importeActual.split('.')[1].length >= 2) {
+                return;
+            }
+            // Límite de longitud (999999.99)
+            else if (importeActual.replace('.', '').length < 8) {
                 importeActual += num;
             }
+            
             actualizarDisplayImporte();
         }
         
         function borrarNumero() {
+            // Evitar borrado duplicado por eventos múltiples
+            if (window.ultimaBorrado && Date.now() - window.ultimaBorrado < 200) {
+                return;
+            }
+            window.ultimaBorrado = Date.now();
+            
             if (importeActual.length > 1) {
                 importeActual = importeActual.slice(0, -1);
             } else {
@@ -1088,13 +1121,27 @@
         }
         
         function actualizarDisplayImporte() {
-            let display = parseFloat(importeActual).toFixed(2);
-            if (importeActual.endsWith('.') || importeActual === '0.') {
-                display = importeActual + '00';
-            } else if (importeActual.includes('.') && importeActual.split('.')[1].length === 1) {
-                display = importeActual + '0';
+            let display = importeActual;
+            
+            // Formatear para visualización
+            if (!importeActual.includes('.')) {
+                // Sin punto decimal, mostrar .00
+                display = importeActual + ',00';
+            } else {
+                const partes = importeActual.split('.');
+                if (partes[1].length === 0) {
+                    // Tiene punto pero sin decimales: "52."
+                    display = partes[0] + ',00';
+                } else if (partes[1].length === 1) {
+                    // Un decimal: "52.5"
+                    display = partes[0] + ',' + partes[1] + '0';
+                } else {
+                    // Dos decimales: "52.50"
+                    display = partes[0] + ',' + partes[1];
+                }
             }
-            document.getElementById('displayImporte').textContent = display.replace('.', ',') + '€';
+            
+            document.getElementById('displayImporte').textContent = display + '€';
         }
         
         function guardarGasto() {
@@ -1189,13 +1236,26 @@
                 }
             });
             
-            // Teclado físico
+            // Teclado físico (solo en desktop, no en móvil)
             document.addEventListener('keydown', function(e) {
-                if (e.key >= '0' && e.key <= '9') agregarNumero(e.key);
-                else if (e.key === '.') agregarNumero('.');
-                else if (e.key === 'Backspace') borrarNumero();
-                else if (e.key === 'Enter' && document.getElementById('captura').classList.contains('activa')) {
-                    guardarGasto();
+                // Solo activar si NO estamos en pantalla táctil
+                if (!('ontouchstart' in window) && document.getElementById('captura').classList.contains('activa')) {
+                    if (e.key >= '0' && e.key <= '9') {
+                        e.preventDefault();
+                        agregarNumero(e.key);
+                    }
+                    else if (e.key === '.') {
+                        e.preventDefault();
+                        agregarNumero('.');
+                    }
+                    else if (e.key === 'Backspace') {
+                        e.preventDefault();
+                        borrarNumero();
+                    }
+                    else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        guardarGasto();
+                    }
                 }
             });
             
