@@ -482,18 +482,18 @@
             <div class="saldo-total" id="displayImporte" style="font-size: 48px; margin-top: 20px;">0.00€</div>
             
             <div class="teclado">
-                <button class="tecla" onclick="agregarNumero('1')">1</button>
-                <button class="tecla" onclick="agregarNumero('2')">2</button>
-                <button class="tecla" onclick="agregarNumero('3')">3</button>
-                <button class="tecla" onclick="agregarNumero('4')">4</button>
-                <button class="tecla" onclick="agregarNumero('5')">5</button>
-                <button class="tecla" onclick="agregarNumero('6')">6</button>
-                <button class="tecla" onclick="agregarNumero('7')">7</button>
-                <button class="tecla" onclick="agregarNumero('8')">8</button>
-                <button class="tecla" onclick="agregarNumero('9')">9</button>
-                <button class="tecla" onclick="agregarNumero('.')">.</button>
-                <button class="tecla" onclick="agregarNumero('0')">0</button>
-                <button class="tecla tecla-borrar" onclick="borrarNumero()">⌫ Borrar</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('1')">1</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('2')">2</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('3')">3</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('4')">4</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('5')">5</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('6')">6</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('7')">7</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('8')">8</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('9')">9</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('.')">.</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('0')">0</button>
+                <button class="tecla tecla-borrar" onpointerdown="event.preventDefault(); borrarNumero()">⌫ Borrar</button>
             </div>
             
             <!-- 3. DESCRIPCIÓN -->
@@ -1078,8 +1078,11 @@
         }
         
         function agregarNumero(num) {
+            console.log('agregarNumero llamado:', num, 'importeActual antes:', importeActual);
+            
             // Evitar entrada duplicada por eventos múltiples
-            if (window.ultimaTecla === num && Date.now() - window.ultimaTeclaTime < 200) {
+            if (window.ultimaTecla === num && Date.now() - window.ultimaTeclaTime < 300) {
+                console.log('Bloqueado por debounce');
                 return;
             }
             window.ultimaTecla = num;
@@ -1102,12 +1105,16 @@
                 importeActual += num;
             }
             
+            console.log('importeActual después:', importeActual);
             actualizarDisplayImporte();
         }
         
         function borrarNumero() {
+            console.log('borrarNumero llamado, importeActual antes:', importeActual);
+            
             // Evitar borrado duplicado por eventos múltiples
-            if (window.ultimaBorrado && Date.now() - window.ultimaBorrado < 200) {
+            if (window.ultimaBorrado && Date.now() - window.ultimaBorrado < 300) {
+                console.log('Bloqueado por debounce');
                 return;
             }
             window.ultimaBorrado = Date.now();
@@ -1117,10 +1124,14 @@
             } else {
                 importeActual = '0';
             }
+            
+            console.log('importeActual después:', importeActual);
             actualizarDisplayImporte();
         }
         
         function actualizarDisplayImporte() {
+            // Guardar valor antes de procesar
+            const valorOriginal = importeActual;
             let display = importeActual;
             
             // Formatear para visualización
@@ -1142,6 +1153,12 @@
             }
             
             document.getElementById('displayImporte').textContent = display + '€';
+            
+            // Verificar que no se modificó accidentalmente
+            if (importeActual !== valorOriginal) {
+                console.error('¡ALERTA! importeActual fue modificado:', valorOriginal, '->', importeActual);
+                importeActual = valorOriginal;
+            }
         }
         
         function guardarGasto() {
