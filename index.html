@@ -356,6 +356,62 @@
     </style>
 </head>
 <body>
+    <!-- PANTALLA DE BIENVENIDA -->
+    <div id="bienvenida" class="pantalla">
+        <div class="tarjeta">
+            <h1>💰 Mi Economía</h1>
+            <p class="subtitulo">Gestor personal de gastos offline</p>
+            
+            <!-- Disclaimer -->
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px; margin: 25px 0;">
+                <h3 style="color: #856404; font-size: 18px; margin-bottom: 10px;">⚠️ AVISO LEGAL</h3>
+                <p style="font-size: 14px; color: #856404; line-height: 1.6;">
+                    Esta herramienta es de <strong>uso personal</strong>. El usuario es el único 
+                    responsable del uso de la aplicación y de los datos que registre. 
+                    No nos hacemos responsables de pérdidas de información o 
+                    cualquier consecuencia derivada de su uso.
+                </p>
+            </div>
+            
+            <!-- Detectar si está instalado -->
+            <div id="mensajeInstalacion" style="display: none;">
+                <h3 style="margin-bottom: 15px;">📱 Para mejor experiencia, instala la app</h3>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="font-size: 15px; margin-bottom: 10px;">📱 En iPhone/iPad:</h4>
+                    <ol style="font-size: 14px; color: #424245; line-height: 1.8; margin-left: 20px;">
+                        <li>Toca el botón "Compartir" 📤</li>
+                        <li>Selecciona "Añadir a pantalla de inicio"</li>
+                        <li>¡Listo! Úsala como cualquier app</li>
+                    </ol>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="font-size: 15px; margin-bottom: 10px;">🤖 En Android:</h4>
+                    <ol style="font-size: 14px; color: #424245; line-height: 1.8; margin-left: 20px;">
+                        <li>Toca el menú (⋮) en Chrome</li>
+                        <li>Selecciona "Añadir a pantalla de inicio"</li>
+                        <li>¡Listo!</li>
+                    </ol>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="font-size: 15px; margin-bottom: 10px;">💻 En PC (Chrome/Edge):</h4>
+                    <ol style="font-size: 14px; color: #424245; line-height: 1.8; margin-left: 20px;">
+                        <li>Busca el icono "Instalar" ➕ en la barra de direcciones</li>
+                        <li>Click en "Instalar"</li>
+                        <li>Se abre como ventana independiente</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <button class="boton" onclick="aceptarYContinuar()">✅ Acepto y continuar</button>
+            <button class="boton boton-secundario" onclick="continuarSinInstalar()" id="btnSaltarInstalacion" style="display: none;">
+                Continuar sin instalar
+            </button>
+        </div>
+    </div>
+    
     <!-- DASHBOARD -->
     <div id="dashboard" class="pantalla activa">
         <div class="tarjeta">
@@ -638,6 +694,16 @@
                 </p>
             </div>
             
+            <!-- Sección de créditos -->
+            <div style="border-top: 2px solid #e5e5ea; padding-top: 20px; margin-top: 30px;">
+                <h4 style="font-size: 15px; color: #8e8e93; margin-bottom: 10px;">ℹ️ Acerca de</h4>
+                <div style="font-size: 13px; color: #6c757d; line-height: 1.6;">
+                    <div style="margin-bottom: 5px;"><strong>💰 Mi Economía</strong> v1.0</div>
+                    <div style="margin-bottom: 5px;">✨ Esta maravilla ha sido posible gracias a un cerebro humano cocreando con IA</div>
+                    <div style="color: #8e8e93;">📅 Febrero 2026</div>
+                </div>
+            </div>
+            
             <button class="boton" onclick="ocultarModalInfo()">
                 ✅ Entendido, ¡a registrar!
             </button>
@@ -648,6 +714,7 @@
         // ========== DATOS Y CONFIGURACIÓN ==========
         let datos = {
             configurado: false,
+            vistoBienvenida: false,
             usuario: { nombre: '', ingreso: 0 },
             gastos: []
         };
@@ -807,6 +874,36 @@
         function mostrarCaptura() { mostrarPantalla('captura'); }
         function mostrarModalInfo() { document.getElementById('modalInfo').classList.add('activo'); }
         function ocultarModalInfo() { document.getElementById('modalInfo').classList.remove('activo'); }
+        
+        // ========== BIENVENIDA ==========
+        function mostrarBienvenida() {
+            mostrarPantalla('bienvenida');
+            
+            // Detectar si está instalado como PWA
+            const esInstalado = window.matchMedia('(display-mode: standalone)').matches || 
+                               window.navigator.standalone === true;
+            
+            if (!esInstalado) {
+                // No está instalado, mostrar instrucciones
+                document.getElementById('mensajeInstalacion').style.display = 'block';
+                document.getElementById('btnSaltarInstalacion').style.display = 'block';
+            }
+        }
+        
+        function aceptarYContinuar() {
+            datos.vistoBienvenida = true;
+            guardarDatos();
+            
+            if (!datos.configurado) {
+                mostrarConfig();
+            } else {
+                mostrarDashboard();
+            }
+        }
+        
+        function continuarSinInstalar() {
+            aceptarYContinuar();
+        }
         
         // ========== CONFIGURACIÓN ==========
         function guardarConfig() {
@@ -1240,7 +1337,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             cargarDatos();
             
-            if (!datos.configurado) {
+            // Mostrar bienvenida si es la primera vez
+            if (!datos.vistoBienvenida) {
+                mostrarBienvenida();
+            } else if (!datos.configurado) {
                 mostrarConfig();
             } else {
                 mostrarDashboard();
