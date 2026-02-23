@@ -360,7 +360,7 @@
     <div id="bienvenida" class="pantalla">
         <div class="tarjeta">
             <h1>💰 Mi Economía</h1>
-            <p class="subtitulo">Gestor personal de gastos offline</p>
+            <p class="subtitulo">Progressive Web App (PWA) - 100% en tu dispositivo</p>
             
             <!-- Disclaimer -->
             <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px; margin: 25px 0;">
@@ -373,9 +373,25 @@
                 </p>
             </div>
             
+            <!-- Info PWA -->
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; border-radius: 10px; margin: 25px 0;">
+                <h3 style="color: #1565c0; font-size: 18px; margin-bottom: 10px;">💡 ¿Qué es una PWA?</h3>
+                <p style="font-size: 14px; color: #1565c0; line-height: 1.6;">
+                    Esta aplicación funciona <strong>100% en tu dispositivo</strong>. Tus datos nunca 
+                    salen de tu móvil/PC. Se actualiza automáticamente cuando hay internet, 
+                    pero funciona perfectamente offline.
+                </p>
+            </div>
+            
             <!-- Detectar si está instalado -->
             <div id="mensajeInstalacion" style="display: none;">
-                <h3 style="margin-bottom: 15px;">📱 Para mejor experiencia, instala la app</h3>
+                <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="color: #c62828; font-size: 16px; margin-bottom: 10px;">📲 Debes instalar esta PWA</h3>
+                    <p style="font-size: 14px; color: #c62828; line-height: 1.6;">
+                        Esta app está diseñada para funcionar <strong>instalada en tu dispositivo</strong>, 
+                        no desde el navegador. Sigue las instrucciones según tu dispositivo:
+                    </p>
+                </div>
                 
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                     <h4 style="font-size: 15px; margin-bottom: 10px;">📱 En iPhone/iPad:</h4>
@@ -405,10 +421,7 @@
                 </div>
             </div>
             
-            <button class="boton" onclick="aceptarYContinuar()">✅ Acepto y continuar</button>
-            <button class="boton boton-secundario" onclick="continuarSinInstalar()" id="btnSaltarInstalacion" style="display: none;">
-                Continuar sin instalar
-            </button>
+            <button class="boton" onclick="aceptarYContinuar()" id="btnAceptar">✅ Acepto y continuar</button>
         </div>
     </div>
     
@@ -481,12 +494,18 @@
         
         <!-- ÚLTIMOS GASTOS -->
         <div class="tarjeta">
-            <h2>📝 Últimos gastos</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">📝 Últimos gastos</h2>
+                <span id="contadorGastos" style="font-size: 14px; color: #8e8e93;"></span>
+            </div>
             <div id="listaGastos">
                 <div class="categoria-item">
                     <span style="color: #8e8e93;">No hay gastos aún</span>
                 </div>
             </div>
+            <button id="btnVerTodos" class="boton boton-secundario" onclick="toggleVerTodos()" style="display: none; margin-top: 15px;">
+                🔍 Ver todos los gastos
+            </button>
         </div>
     </div>
     
@@ -884,9 +903,13 @@
                                window.navigator.standalone === true;
             
             if (!esInstalado) {
-                // No está instalado, mostrar instrucciones
+                // No está instalado, mostrar instrucciones obligatorias
                 document.getElementById('mensajeInstalacion').style.display = 'block';
-                document.getElementById('btnSaltarInstalacion').style.display = 'block';
+                document.getElementById('btnAceptar').textContent = '✅ He instalado la app';
+            } else {
+                // Ya está instalado, solo mostrar disclaimer
+                document.getElementById('mensajeInstalacion').style.display = 'none';
+                document.getElementById('btnAceptar').textContent = '✅ Acepto y continuar';
             }
         }
         
@@ -899,10 +922,6 @@
             } else {
                 mostrarDashboard();
             }
-        }
-        
-        function continuarSinInstalar() {
-            aceptarYContinuar();
         }
         
         // ========== CONFIGURACIÓN ==========
@@ -1085,8 +1104,12 @@
             }
         }
         
+        let mostrandoTodos = false;
+        
         function actualizarUltimosGastos() {
             const container = document.getElementById('listaGastos');
+            const btnVerTodos = document.getElementById('btnVerTodos');
+            const contadorGastos = document.getElementById('contadorGastos');
             
             if (!datos.gastos || datos.gastos.length === 0) {
                 container.innerHTML = `
@@ -1094,15 +1117,34 @@
                         <span style="color: #8e8e93;">No hay gastos registrados aún</span>
                     </div>
                 `;
+                btnVerTodos.style.display = 'none';
+                contadorGastos.textContent = '';
                 return;
             }
             
-            const ultimos = [...datos.gastos]
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-                .slice(0, 5);
+            const totalGastos = datos.gastos.length;
+            const gastosOrdenados = [...datos.gastos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             
+            // Determinar cuántos mostrar
+            const gastosAMostrar = mostrandoTodos ? gastosOrdenados : gastosOrdenados.slice(0, 5);
+            
+            // Actualizar contador
+            if (totalGastos > 5) {
+                contadorGastos.textContent = mostrandoTodos 
+                    ? `Mostrando ${totalGastos} gastos` 
+                    : `${totalGastos} gastos totales`;
+                btnVerTodos.style.display = 'block';
+                btnVerTodos.textContent = mostrandoTodos 
+                    ? '🔼 Mostrar solo últimos 5' 
+                    : `🔍 Ver todos los gastos (${totalGastos})`;
+            } else {
+                contadorGastos.textContent = `${totalGastos} gasto${totalGastos > 1 ? 's' : ''}`;
+                btnVerTodos.style.display = 'none';
+            }
+            
+            // Generar HTML
             let html = '';
-            ultimos.forEach(gasto => {
+            gastosAMostrar.forEach(gasto => {
                 const fecha = new Date(gasto.fecha);
                 const categoria = categorias.find(c => c.id === gasto.categoria) || categorias[0];
                 
@@ -1123,6 +1165,16 @@
             });
             
             container.innerHTML = html;
+        }
+        
+        function toggleVerTodos() {
+            mostrandoTodos = !mostrandoTodos;
+            actualizarUltimosGastos();
+            
+            // Scroll suave a la sección si estamos expandiendo
+            if (mostrandoTodos) {
+                document.getElementById('listaGastos').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
         
         // ========== CAPTURA DE GASTOS ==========
