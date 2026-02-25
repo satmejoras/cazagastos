@@ -362,31 +362,10 @@
             <h1>💰 Mi Economía</h1>
             <p class="subtitulo">Progressive Web App (PWA) - 100% en tu dispositivo</p>
             
-            <!-- Disclaimer -->
-            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px; margin: 25px 0;">
-                <h3 style="color: #856404; font-size: 18px; margin-bottom: 10px;">⚠️ AVISO LEGAL</h3>
-                <p style="font-size: 14px; color: #856404; line-height: 1.6;">
-                    Esta herramienta es de <strong>uso personal</strong>. El usuario es el único 
-                    responsable del uso de la aplicación y de los datos que registre. 
-                    No nos hacemos responsables de pérdidas de información o 
-                    cualquier consecuencia derivada de su uso.
-                </p>
-            </div>
-            
-            <!-- Info PWA -->
-            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; border-radius: 10px; margin: 25px 0;">
-                <h3 style="color: #1565c0; font-size: 18px; margin-bottom: 10px;">💡 ¿Qué es una PWA?</h3>
-                <p style="font-size: 14px; color: #1565c0; line-height: 1.6;">
-                    Esta herramienta funciona <strong>100% en tu dispositivo</strong>. Tus datos nunca 
-                    salen de tu móvil/PC. Se actualiza automáticamente cuando hay internet, 
-                    pero funciona perfectamente offline.
-                </p>
-            </div>
-            
-            <!-- Detectar si está instalado -->
+            <!-- 1. INSTRUCCIONES (PRIMERO) -->
             <div id="mensajeInstalacion" style="display: none;">
-                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h3 style="color: #2e7d32; font-size: 16px; margin-bottom: 10px;">✨ Diseñada para hacértelo fácil</h3>
+                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; border-radius: 10px; margin: 25px 0;">
+                    <h3 style="color: #2e7d32; font-size: 18px; margin-bottom: 10px;">✨ Diseñada para hacértelo fácil</h3>
                     <p style="font-size: 14px; color: #2e7d32; line-height: 1.6;">
                         Esta herramienta está pensada para funcionar <strong>en tu dispositivo desde el minuto uno</strong> 
                         desde este mismo enlace en el que te encuentras. Sigue las instrucciones según tu dispositivo:
@@ -419,9 +398,38 @@
                         <li>Se abre como ventana independiente</li>
                     </ol>
                 </div>
+                
+                <!-- Mensaje amigable de bloqueo -->
+                <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <p style="font-size: 14px; color: #e65100; line-height: 1.6; text-align: center;">
+                        <strong>¿No haces el enlace en tu dispositivo?</strong><br>
+                        Tú te lo pierdes 😉
+                    </p>
+                </div>
             </div>
             
-            <button class="boton" onclick="aceptarYContinuar()" id="btnAceptar">✅ Acepto y continuar</button>
+            <!-- 2. QUÉ ES UNA PWA (SEGUNDO) -->
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; border-radius: 10px; margin: 25px 0;">
+                <h3 style="color: #1565c0; font-size: 18px; margin-bottom: 10px;">💡 ¿Qué es una PWA?</h3>
+                <p style="font-size: 14px; color: #1565c0; line-height: 1.6;">
+                    Esta herramienta funciona <strong>100% en tu dispositivo</strong>. Tus datos nunca 
+                    salen de tu móvil/PC. Se actualiza automáticamente cuando hay internet, 
+                    pero funciona perfectamente offline.
+                </p>
+            </div>
+            
+            <!-- 3. DISCLAIMER (TERCERO) -->
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px; margin: 25px 0;">
+                <h3 style="color: #856404; font-size: 18px; margin-bottom: 10px;">⚠️ AVISO LEGAL</h3>
+                <p style="font-size: 14px; color: #856404; line-height: 1.6;">
+                    Esta herramienta es de <strong>uso personal</strong>. El usuario es el único 
+                    responsable del uso de la aplicación y de los datos que registre. 
+                    No nos hacemos responsables de pérdidas de información o 
+                    cualquier consecuencia derivada de su uso.
+                </p>
+            </div>
+            
+            <button class="boton" onclick="aceptarYContinuar()" id="btnAceptar">✅ Entendido, comenzar</button>
         </div>
     </div>
     
@@ -903,17 +911,26 @@
                                window.navigator.standalone === true;
             
             if (!esInstalado) {
-                // No está instalado, mostrar instrucciones obligatorias
+                // No está instalado, mostrar instrucciones y BLOQUEAR
                 document.getElementById('mensajeInstalacion').style.display = 'block';
-                document.getElementById('btnAceptar').textContent = '✅ He instalado la app';
             } else {
-                // Ya está instalado, solo mostrar disclaimer
+                // Ya está instalado, ocultar instrucciones
                 document.getElementById('mensajeInstalacion').style.display = 'none';
-                document.getElementById('btnAceptar').textContent = '✅ Acepto y continuar';
             }
         }
         
         function aceptarYContinuar() {
+            // Verificar si está instalado antes de dejar pasar
+            const esInstalado = window.matchMedia('(display-mode: standalone)').matches || 
+                               window.navigator.standalone === true;
+            
+            if (!esInstalado) {
+                // NO está instalado - BLOQUEAR con mensaje amigable
+                mostrarNotificacion('😉 Primero instala la app en tu dispositivo');
+                return; // NO dejar pasar
+            }
+            
+            // SÍ está instalado - dejar pasar
             datos.vistoBienvenida = true;
             guardarDatos();
             
