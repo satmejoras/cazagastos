@@ -398,14 +398,6 @@
                         <li>Se abre como ventana independiente</li>
                     </ol>
                 </div>
-                
-                <!-- Mensaje amigable de bloqueo -->
-                <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                    <p style="font-size: 14px; color: #e65100; line-height: 1.6; text-align: center;">
-                        <strong>¿No haces el enlace en tu dispositivo?</strong><br>
-                        Tú te lo pierdes 😉
-                    </p>
-                </div>
             </div>
             
             <!-- 2. QUÉ ES UNA PWA (SEGUNDO) -->
@@ -926,7 +918,7 @@
             
             if (!esInstalado) {
                 // NO está instalado - BLOQUEAR con mensaje amigable
-                mostrarNotificacion('😉 Primero instala la app en tu dispositivo');
+                mostrarNotificacion('¿No haces el enlace en tu dispositivo? Tú te lo pierdes 😉');
                 return; // NO dejar pasar
             }
             
