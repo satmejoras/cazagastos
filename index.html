@@ -1372,12 +1372,18 @@
             const nombreArchivo = `${nombreUsuario}_${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}.csv`;
             
             // Crear CSV con punto y coma (separador para Excel en español)
-            let csv = 'Fecha;Hora;Importe;Categoría;Tipo;Descripción\n';
+            // Columnas: Fecha, Hora, Importe, Icono, Categoría, Tipo, Descripción
+            let csv = 'Fecha;Hora;Importe;Icono;Categoría;Tipo;Descripción\n';
             datos.gastos.forEach(gasto => {
                 const fecha = new Date(gasto.fecha);
                 const categoria = obtenerCategoria(gasto.categoria);
                 
-                csv += `${fecha.toLocaleDateString('es-ES')};${fecha.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})};${gasto.importe};${categoria.nombre};${categoria.tipo};${gasto.descripcion}\n`;
+                // Separar icono y nombre de categoría
+                const nombreCompleto = categoria.nombre;
+                const icono = nombreCompleto.split(' ')[0]; // Primer elemento es el emoji
+                const nombreSinIcono = nombreCompleto.split(' ').slice(1).join(' '); // Resto es el nombre
+                
+                csv += `${fecha.toLocaleDateString('es-ES')};${fecha.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})};${gasto.importe};${icono};${nombreSinIcono};${categoria.tipo};${gasto.descripcion}\n`;
             });
             
             // Descargar con BOM para UTF-8
