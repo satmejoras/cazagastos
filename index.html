@@ -438,7 +438,7 @@
                         <span>Necesidades (50%)</span>
                     </div>
                     <div class="estado-presupuesto" id="estadoNecesidades">
-                        --.--€ / --.--€
+                        --.-- (€/$) / --.-- (€/$)
                     </div>
                 </div>
                 
@@ -459,7 +459,7 @@
                         <span>Gastos Personales (30%)</span>
                     </div>
                     <div class="estado-presupuesto" id="estadoPersonales">
-                        --.--€ / --.--€
+                        --.-- (€/$) / --.-- (€/$)
                     </div>
                 </div>
                 
@@ -475,9 +475,9 @@
             <!-- RESUMEN GENERAL -->
             <div class="resumen-general">
                 <div style="color: #8e8e93; font-size: 14px;">Saldo disponible este mes</div>
-                <div class="saldo-total" id="saldoTotal">--.--€</div>
+                <div class="saldo-total" id="saldoTotal">--.-- (€/$)</div>
                 <div style="color: #8e8e93; font-size: 13px;" id="infoResumen">
-                    De --.--€ ingresados
+                    De --.-- (€/$) ingresados
                 </div>
             </div>
             
@@ -510,7 +510,7 @@
             
             <input type="text" id="nombre" placeholder="Tu nombre" style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin-bottom: 15px;">
             
-            <input type="number" id="ingreso" placeholder="Ingreso mensual (€)" style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin-bottom: 20px;">
+            <input type="number" id="ingreso" placeholder="Ingreso mensual (€/$)" style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin-bottom: 20px;">
             
             <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #007aff;">
                 <div style="font-weight: 600; margin-bottom: 10px; color: #007aff;">
@@ -547,7 +547,7 @@
             </div>
             
             <!-- 2. IMPORTE -->
-            <div class="saldo-total" id="displayImporte" style="font-size: 48px; margin-top: 20px;">0.00€</div>
+            <div class="saldo-total" id="displayImporte" style="font-size: 48px; margin-top: 20px;">0.00 (€/$)</div>
             
             <div class="teclado">
                 <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('1')">1</button>
@@ -1029,7 +1029,7 @@
             const porcentajeNecesidades = Math.min((totalNecesidades / presupuestoNecesidades) * 100, 100);
             document.getElementById('barraNecesidades').style.width = `${porcentajeNecesidades}%`;
             document.getElementById('estadoNecesidades').textContent = 
-                `${totalNecesidades.toFixed(2)}€ / ${presupuestoNecesidades.toFixed(2)}€`;
+                `${totalNecesidades.toFixed(2)} (€/$) / ${presupuestoNecesidades.toFixed(2)} (€/$)`;
             
             // Lista de categorías de necesidades
             let htmlNecesidades = '';
@@ -1044,7 +1044,7 @@
                                     <span>${cat.nombre.split(' ')[0]}</span>
                                     <span>${cat.nombre.split(' ').slice(1).join(' ')}</span>
                                 </div>
-                                <div class="importe-categoria">${gasto.toFixed(2)}€</div>
+                                <div class="importe-categoria">${gasto.toFixed(2)} (€/$)</div>
                             </div>
                         `;
                     }
@@ -1059,7 +1059,7 @@
             const porcentajePersonales = Math.min((totalPersonales / presupuestoPersonales) * 100, 100);
             document.getElementById('barraPersonales').style.width = `${porcentajePersonales}%`;
             document.getElementById('estadoPersonales').textContent = 
-                `${totalPersonales.toFixed(2)}€ / ${presupuestoPersonales.toFixed(2)}€`;
+                `${totalPersonales.toFixed(2)} (€/$) / ${presupuestoPersonales.toFixed(2)} (€/$)`;
             
             // Lista de categorías personales
             let htmlPersonales = '';
@@ -1074,7 +1074,7 @@
                                     <span>${cat.nombre.split(' ')[0]}</span>
                                     <span>${cat.nombre.split(' ').slice(1).join(' ')}</span>
                                 </div>
-                                <div class="importe-categoria">${gasto.toFixed(2)}€</div>
+                                <div class="importe-categoria">${gasto.toFixed(2)} (€/$)</div>
                             </div>
                         `;
                     }
@@ -1086,13 +1086,13 @@
             document.getElementById('listaPersonales').innerHTML = htmlPersonales;
             
             // 3. RESUMEN GENERAL
-            document.getElementById('saldoTotal').textContent = `${saldoDisponible.toFixed(2)}€`;
+            document.getElementById('saldoTotal').textContent = `${saldoDisponible.toFixed(2)} (€/$)`;
             document.getElementById('saldoTotal').className = saldoDisponible >= 0 ? 'saldo-total positivo' : 'saldo-total negativo';
             
             document.getElementById('infoResumen').innerHTML = `
-                De ${datos.usuario.ingreso.toFixed(2)}€ ingresados • 
+                De ${datos.usuario.ingreso.toFixed(2)} (€/$) ingresados • 
                 Día ${diaMes}/${diasTotales} • 
-                <strong>${totalGastado.toFixed(2)}€</strong> gastados
+                <strong>${totalGastado.toFixed(2)} (€/$)</strong> gastados
             `;
             
             // 4. ÚLTIMOS GASTOS (independiente del tipo)
@@ -1159,7 +1159,7 @@
                             <span>${gasto.descripcion || categoria.nombre.split(' ').slice(1).join(' ')}</span>
                         </div>
                         <div style="text-align: right;">
-                            <div class="importe-categoria">${gasto.importe.toFixed(2)}€</div>
+                            <div class="importe-categoria">${gasto.importe.toFixed(2)} (€/$)</div>
                             <div style="font-size: 11px; color: #8e8e93;">
                                 ${fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                             </div>
@@ -1305,7 +1305,7 @@
                 }
             }
             
-            document.getElementById('displayImporte').textContent = display + '€';
+            document.getElementById('displayImporte').textContent = display + ' (€/$)';
             
             // Verificar que no se modificó accidentalmente
             if (importeActual !== valorOriginal) {
@@ -1344,7 +1344,7 @@
             
             // Notificación y volver automáticamente
             const categoria = obtenerCategoria(categoriaSeleccionada);
-            mostrarNotificacion(`✅ ${importe.toFixed(2)}€ en ${categoria.nombre}`);
+            mostrarNotificacion(`✅ ${importe.toFixed(2)} (€/$) en ${categoria.nombre}`);
             
             setTimeout(() => {
                 mostrarDashboard();
@@ -1367,8 +1367,8 @@
             const nombreArchivo = `${nombreUsuario}_${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}.csv`;
             
             // Crear CSV con punto y coma (separador para Excel en español)
-            // Columnas: Fecha, Hora, Importe, Icono, Categoría, Tipo, Descripción
-            let csv = 'Fecha;Hora;Importe;Icono;Categoría;Tipo;Descripción\n';
+            // Columnas: Fecha, Hora, Importe (€/$), Icono, Categoría, Tipo, Descripción
+            let csv = 'Fecha;Hora;Importe (€/$);Icono;Categoría;Tipo;Descripción\n';
             datos.gastos.forEach(gasto => {
                 const fecha = new Date(gasto.fecha);
                 const categoria = obtenerCategoria(gasto.categoria);
