@@ -191,13 +191,6 @@
             transform: scale(0.95);
         }
         
-        .tecla-borrar {
-            background: #ff3b30;
-            color: white;
-            font-size: 18px;
-            grid-column: span 3;
-        }
-        
         /* Selector de categorías en captura */
         .selector-categorias {
             display: grid;
@@ -568,8 +561,11 @@
                 <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('9')">9</button>
                 <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('.')">.</button>
                 <button class="tecla" onpointerdown="event.preventDefault(); agregarNumero('0')">0</button>
-                <button class="tecla tecla-borrar" onpointerdown="event.preventDefault(); borrarNumero()">⌫ Borrar</button>
+                <button class="tecla" onpointerdown="event.preventDefault(); borrarNumero()">⌫</button>
             </div>
+            
+            <!-- BOTÓN GUARDAR (justo después del teclado) -->
+            <button class="boton" onclick="guardarGasto()" style="margin-top: 20px;">💾 Guardar gasto</button>
             
             <!-- 3. DESCRIPCIÓN -->
             <input type="text" id="descripcion" placeholder="Descripción (opcional): Ej. Mercadona, Gasolina BP..." style="width: 100%; padding: 16px; border: 2px solid #e5e5ea; border-radius: 12px; margin: 15px 0;">
@@ -593,7 +589,6 @@
                 </div>
             </div>
             
-            <button class="boton" onclick="guardarGasto()">💾 Guardar gasto</button>
             <button class="boton boton-secundario" onclick="mostrarDashboard()">← Cancelar</button>
         </div>
     </div>
